@@ -1,124 +1,142 @@
-﻿namespace StoepBarbershop.Api.Services;
+﻿using System.Net;
+using System.Net.Mail;
 
-public class EmailBackgroundService : BackgroundService
+namespace StoepBarbershop.Api.Services;
+
+public sealed class EmailBackgroundService : BackgroundService
 {
     private readonly EmailQueue _queue;
-    private readonly IConfiguration _config;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<EmailBackgroundService> _logger;
 
     public EmailBackgroundService(
         EmailQueue queue,
-        IConfiguration config,
+        IConfiguration configuration,
         ILogger<EmailBackgroundService> logger)
     {
         _queue = queue;
-        _config = config;
+        _configuration = configuration;
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(
-        CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation(
-            "Stoep email background service started.");
+        _logger.LogInformation("Stoep email background service started.");
 
-        await foreach (
-            var message in _queue.ReadAllAsync(stoppingToken))
+        await foreach (var booking in _queue.ReadAllAsync(stoppingToken))
         {
             try
             {
-                await SendEmailAsync(message, stoppingToken);
+                await SendEmailAsync(booking, stoppingToken);
             }
-            catch (OperationCanceledException)
-                when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                break;
+                _logger.LogInformation(
+                    "Email background service is stopping.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(
                     ex,
                     "Background email failed for booking {Reference}",
-                    message.Reference);
+                    booking.Reference);
             }
         }
 
-        _logger.LogInformation(
-            "Stoep email background service stopped.");
+        _logger.LogInformation("Stoep email background service stopped.");
     }
 
     private async Task SendEmailAsync(
         BookingEmailMessage booking,
-        CancellationToken ct)
+        CancellationToken stoppingToken)
     {
-        var host = _config["Email:Host"]
-            ?? throw new InvalidOperationException("Email host is not configured.");
+        var host = _configuration["Email:Host"];
+        var portValue = _configuration["Email:Port"];
+        var username = _configuration["Email:Username"];
+        var password = _configuration["Email:Password"];
+        var fromAddress = _configuration["Email:FromAddress"];
+        var fromName = _configuration["Email:FromName"];
 
-        var port = int.Parse(
-            _config["Email:Port"]
-            ?? throw new InvalidOperationException("Email port is not configured."));
+        if (string.IsNullOrWhiteSpace(host))
+            throw new InvalidOperationException("Email:Host is not configured.");
 
-        var username = _config["Email:Username"]
-            ?? throw new InvalidOperationException("Email username is not configured.");
+        if (!int.TryParse(portValue, out var port))
+            throw new InvalidOperationException("Email:Port is not configured correctly.");
 
-        var password = _config["Email:Password"]
-            ?? throw new InvalidOperationException("Email password is not configured.");
+        if (string.IsNullOrWhiteSpace(username))
+            throw new InvalidOperationException("Email:Username is not configured.");
 
-        var fromAddress = _config["Email:FromAddress"]
-            ?? throw new InvalidOperationException("Email from address is not configured.");
+        if (string.IsNullOrWhiteSpace(password))
+            throw new InvalidOperationException("Email:Password is not configured.");
 
-        var fromName = _config["Email:FromName"]
-            ?? "Stoep Barbershop";
+        if (string.IsNullOrWhiteSpace(fromAddress))
+            throw new InvalidOperationException("Email:FromAddress is not configured.");
 
-        using var timeoutCts =
-            CancellationTokenSource.CreateLinkedTokenSource(ct);
+        if (string.IsNullOrWhiteSpace(fromName))
+            fromName = "Stoep Barbershop";
 
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(10));
-
-        using var client = new System.Net.Mail.SmtpClient(host, port)
+        using var client = new SmtpClient(host, port)
         {
-            Credentials = new System.Net.NetworkCredential(
-                username,
-                password),
-            EnableSsl = true
+            Credentials = new NetworkCredential(username, password),
+            EnableSsl = true,
+            DeliveryMethod = SmtpDeliveryMethod.Network,
+            Timeout = 30000
         };
 
-        using var mail = new System.Net.Mail.MailMessage
+        using var message = new MailMessage
         {
-            From = new System.Net.Mail.MailAddress(
-                fromAddress,
-                fromName),
-
+            From = new MailAddress(fromAddress, fromName),
             Subject = $"Booking confirmed — {booking.Reference}",
-
-            Body = $"""
-                Hi {booking.CustomerName},
-
-                You're booked in at Stoep Barbershop.
-
-                Reference: {booking.Reference}
-                Service: {booking.ServiceName}
-                Barber: {booking.BarberName}
-                Date: {booking.Date}
-                Time: {TimeSpan.FromMinutes(booking.StartMinutes):hh\:mm} – {TimeSpan.FromMinutes(booking.EndMinutes):hh\:mm}
-
-                142 Duncan Street, Hatfield, Pretoria, 0028
-                012 111 4402
-
-                See you then.
-
-                Stoep Barbershop
-                """,
-
+            Body = BuildBody(booking),
             IsBodyHtml = false
         };
 
-        mail.To.Add(booking.CustomerEmail);
-
-        await client.SendMailAsync(mail, timeoutCts.Token);
+        message.To.Add(booking.CustomerEmail);
 
         _logger.LogInformation(
-            "Booking confirmation email sent for {Reference}",
+            "Sending booking confirmation email for {Reference} to {Email}",
+            booking.Reference,
+            booking.CustomerEmail);
+
+        // Do NOT use the booking request cancellation token here.
+        // A booking should already be saved even if the HTTP request ends.
+        await client.SendMailAsync(message);
+
+        _logger.LogInformation(
+            "Booking confirmation email sent successfully for {Reference}",
             booking.Reference);
+    }
+
+    private static string BuildBody(BookingEmailMessage booking)
+    {
+        var start = TimeSpan.FromMinutes(booking.StartMinutes);
+        var end = TimeSpan.FromMinutes(booking.EndMinutes);
+
+        return $"""
+            Hi {booking.CustomerName},
+
+            Your booking at Stoep Barbershop has been confirmed.
+
+            Booking Reference: {booking.Reference}
+
+            Service: {booking.ServiceName}
+            Barber: {booking.BarberName}
+            Date: {booking.Date}
+            Time: {start:hh\:mm} – {end:hh\:mm}
+
+            Address:
+            142 Duncan Street
+            Hatfield
+            Pretoria
+            0028
+
+            Phone: 012 111 4402
+
+            Please keep your booking reference for your records.
+
+            See you then.
+
+            Stoep Barbershop
+            """;
     }
 }
