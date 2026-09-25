@@ -15,7 +15,12 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder
 // ---- App services ----
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+//builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddSingleton<EmailQueue>();
+builder.Services.AddSingleton<IEmailQueue>(
+    sp => sp.GetRequiredService<EmailQueue>());
+
+builder.Services.AddHostedService<EmailBackgroundService>();
 
 // ---- Auth (JWT bearer for the barber dashboard) ----
 var jwtSection = builder.Configuration.GetSection("Jwt");

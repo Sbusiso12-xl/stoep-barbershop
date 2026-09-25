@@ -10,7 +10,7 @@ public class BookingService : IBookingService
 {
     private readonly AppDbContext _db;
     private readonly ILogger<BookingService> _logger;
-    private readonly IEmailService _emailService;
+    private readonly IEmailQueue _emailQueue;
 
     // A booking always touches (barberId, date) and nothing outside it, so a
     // lock keyed on that pair is exactly as coarse as it needs to be: two
@@ -23,11 +23,14 @@ public class BookingService : IBookingService
     // rollback/retry on the common single-instance case.
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim> Locks = new();
 
-    public BookingService(AppDbContext db, ILogger<BookingService> logger, IEmailService emailService)
+    public BookingService(
+      AppDbContext db,
+      ILogger<BookingService> logger,
+      IEmailQueue emailQueue)
     {
         _db = db;
         _logger = logger;
-        _emailService = emailService;
+        _emailQueue = emailQueue;
     }
 
     public async Task<AvailabilityResponse> GetAvailabilityAsync(string? barberId, string date, string serviceId, CancellationToken ct = default)
@@ -150,9 +153,27 @@ public class BookingService : IBookingService
                 throw new BookingConflictException("That slot was just taken. Please pick another time.");
             }
 
-            await _db.Entry(booking).Reference(b => b.Service).LoadAsync(ct);
-            await _db.Entry(booking).Reference(b => b.Barber).LoadAsync(ct);
-            await _emailService.SendBookingConfirmationAsync(booking, ct);
+            await _db.Entry(booking)
+    .Reference(b => b.Service)
+    .LoadAsync(ct);
+
+            await _db.Entry(booking)
+                .Reference(b => b.Barber)
+                .LoadAsync(ct);
+
+            var emailMessage = new BookingEmailMessage(
+                booking.Reference,
+                booking.CustomerName,
+                booking.CustomerEmail,
+                booking.Service?.Name ?? "Unknown service",
+                booking.Barber?.Name ?? "Unknown barber",
+                booking.Date,
+                booking.StartMinutes,
+                booking.EndMinutes
+            );
+
+            await _emailQueue.QueueAsync(emailMessage, ct);
+
             return BookingResponse.From(booking);
         }
         finally
