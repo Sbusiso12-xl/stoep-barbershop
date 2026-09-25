@@ -1,0 +1,29 @@
+# Visual Studio
+.vs/
+**/.vs/
+
+# Build output
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Visual Studio user files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Environment-specific configuration
+appsettings.Development.json
+appsettings.Production.json
+
+# Test output
+TestResults/
+
+# Node/frontend dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db

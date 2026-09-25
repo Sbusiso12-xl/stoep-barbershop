@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Barber Dashboard — Stoep Barbershop</title>
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .dash-wrap { max-width: 900px; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
+  .dash-login { max-width: 360px; margin: 4rem auto; display: grid; gap: .75rem; }
+  .dash-login input { padding: .6rem .75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+  .dash-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .dash-filters { display: flex; gap: .75rem; align-items: end; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .dash-filters label { display: block; font-size: .8rem; margin-bottom: .25rem; }
+  .dash-filters input, .dash-filters select { padding: .45rem .6rem; border: 1px solid #ccc; border-radius: 6px; }
+  table.dash-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  table.dash-table th, table.dash-table td { text-align: left; padding: .6rem .5rem; border-bottom: 1px solid #e5e0d5; vertical-align: top; }
+  .status-pill { display: inline-block; padding: .15rem .55rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+  .status-Confirmed { background: #e7f0e5; color: #2f5d33; }
+  .status-Completed { background: #e2e8f5; color: #2b3f7a; }
+  .status-Cancelled { background: #f5e2e2; color: #7a2b2b; }
+  .status-NoShow { background: #f5eee2; color: #7a5c2b; }
+  .row-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .row-actions button { font-size: .78rem; padding: .3rem .55rem; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+  .row-actions button:hover { background: #f2ede0; }
+  #dashError { color: #7a1f31; margin: .5rem 0; }
+  #dashEmpty { color: #666; padding: 1rem 0; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">
+      <span class="logo-word">Stoep Barbershop</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+  <div class="dash-wrap">
+
+    <form id="loginForm" class="dash-login">
+      <h1>Barber login</h1>
+      <p>Sign in to see your bookings.</p>
+      <label for="loginUser">Username</label>
+      <input id="loginUser" name="username" autocomplete="username" required>
+      <label for="loginPass">Password</label>
+      <input id="loginPass" name="password" type="password" autocomplete="current-password" required>
+      <button class="btn btn-primary" type="submit">Sign in</button>
+      <p id="loginError" style="color:#7a1f31; display:none;"></p>
+    </form>
+
+    <div id="dashApp" style="display:none;">
+      <div class="dash-header">
+        <div>
+          <h1 id="dashTitle" style="margin:0;">Your bookings</h1>
+          <p id="dashSubtitle" style="margin:.2rem 0 0; color:#666;"></p>
+        </div>
+        <button class="btn btn-outline" id="logoutBtn" type="button">Sign out</button>
+      </div>
+
+      <div class="dash-filters">
+        <div>
+          <label for="fromDate">From</label>
+          <input id="fromDate" type="date">
+        </div>
+        <div>
+          <label for="toDate">To</label>
+          <input id="toDate" type="date">
+        </div>
+        <div id="barberFilterWrap" style="display:none;">
+          <label for="barberFilter">Barber</label>
+          <select id="barberFilter">
+            <option value="">All barbers</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="refreshBtn" type="button">Refresh</button>
+        </div>
+      </div>
+
+      <p id="dashError" style="display:none;"></p>
+      <p id="dashEmpty" style="display:none;">No bookings in this range.</p>
+
+      <div style="overflow-x:auto;">
+        <table class="dash-table" id="dashTable" style="display:none;">
+          <thead>
+            <tr>
+              <th>Date</th><th>Time</th><th>Service</th><th>Barber</th><th>Customer</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="dashTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/dashboard.js"></script>
+</body>
+</html>

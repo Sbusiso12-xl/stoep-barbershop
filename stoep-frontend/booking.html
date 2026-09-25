@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book a Cut — Stoep Barbershop</title>
+<meta name="description" content="Book your appointment at Stoep Barbershop in Hatfield, Pretoria. Choose your service, barber, date and time online.">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.html">
+<img class="logo-mark" src="assets/img/logo-navy.png" alt="" width="30" height="30">        <rect width="64" height="64" rx="8" fill="#1c1a17"/>
+        <circle cx="49" cy="17" r="3" fill="#7a1f31"/>
+      </svg>
+      <span class="logo-word">Stoep Barbershop</span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="mainNav" aria-label="Toggle menu"><span></span></button>
+    <nav class="main-nav" id="mainNav" aria-label="Primary">
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="booking.html" aria-current="page">Booking</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="header-cta"><a class="btn btn-primary" href="booking.html">Book now</a></div>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="container">
+      <h1>Book your chair</h1>
+      <p>Four quick steps. Your slot is held as soon as you confirm.</p>
+    </div>
+  </section>
+
+  <section class="section" id="bookingApp">
+    <div class="container" style="max-width:760px">
+
+      <div id="bookingWizard">
+        <div class="booking-steps" id="bookingSteps"></div>
+        <p id="stepError" class="field-error" style="display:none;font-weight:600;margin-bottom:16px"></p>
+
+        <!-- Step 1: Service -->
+        <div class="booking-panel" data-panel="service">
+          <h2>Choose a service</h2>
+          <div class="choice-grid" id="serviceChoices"></div>
+          <div class="booking-nav">
+            <span></span>
+            <button type="button" class="btn btn-primary" data-nav="next">Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Barber -->
+        <div class="booking-panel" data-panel="barber">
+          <h2>Choose a barber</h2>
+          <div class="choice-grid" id="barberChoices"></div>
+          <div class="booking-nav">
+            <button type="button" class="btn btn-outline" data-nav="back">Back</button>
+            <button type="button" class="btn btn-primary" data-nav="next">Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Date & time -->
+        <div class="booking-panel" data-panel="datetime">
+          <h2>Choose a date &amp; time</h2>
+          <div class="date-input-row">
+            <div class="field">
+              <label for="bookingDate">Date</label>
+              <input type="date" id="bookingDate">
+            </div>
+          </div>
+          <p id="timeGridNote" class="field-hint">Pick a date to see available times.</p>
+          <div class="time-grid" id="timeGrid"></div>
+          <div class="booking-nav">
+            <button type="button" class="btn btn-outline" data-nav="back">Back</button>
+            <button type="button" class="btn btn-primary" data-nav="next">Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 4: Details -->
+        <div class="booking-panel" data-panel="details">
+          <h2>Your details</h2>
+          <div class="booking-summary-box" id="bookingSummary"></div>
+          <form id="bookingDetailsForm" novalidate>
+            <div class="form-grid">
+              <div class="field full">
+                <label for="custName">Full name</label>
+                <input type="text" id="custName" name="custName" autocomplete="name" required>
+                <span class="field-error" id="custNameError"></span>
+              </div>
+              <div class="field">
+                <label for="custEmail">Email</label>
+                <input type="email" id="custEmail" name="custEmail" autocomplete="email" required>
+                <span class="field-error" id="custEmailError"></span>
+              </div>
+              <div class="field">
+                <label for="custPhone">Phone</label>
+                <input type="tel" id="custPhone" name="custPhone" autocomplete="tel" placeholder="082 123 4567" required>
+                <span class="field-error" id="custPhoneError"></span>
+              </div>
+              <div class="field full">
+                <label for="custNotes">Notes (optional)</label>
+                <textarea id="custNotes" name="custNotes" placeholder="Anything your barber should know"></textarea>
+              </div>
+            </div>
+            <div class="booking-nav">
+              <button type="button" class="btn btn-outline" data-nav="back">Back</button>
+              <button type="submit" class="btn btn-primary">Confirm booking</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="bookingConfirmation" style="display:none"></div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="logo" href="index.html">
+<img class="logo-mark" src="assets/img/logo-white.png" alt="" width="30" height="30">            <rect width="64" height="64" rx="8" fill="#f3eedf"/>
+            <path d="M18 14 L18 50 M18 14 L34 14 Q44 14 44 24 Q44 32 34 32 L18 32 M32 32 L44 50" stroke="#1c1a17" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="49" cy="17" r="3" fill="#7a1f31"/>
+          </svg>
+          <span class="logo-word">Stoep Barbershop</span>
+        </a>
+        <p>142 Duncan Street, Hatfield, Pretoria. Cuts, fades and beard work since 2016.</p>
+        <div class="footer-social">
+          <a data-shop-instagram href="#" aria-label="Stoep Barbershop on Instagram" target="_blank" rel="noopener">IG</a>
+          <a data-shop-facebook href="#" aria-label="Stoep Barbershop on Facebook" target="_blank" rel="noopener">FB</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="booking.html">Booking</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="services.html#classic">Classic Cut</a></li>
+          <li><a href="services.html#fade">Skin Fade</a></li>
+          <li><a href="services.html#beard">Beard Trim</a></li>
+          <li><a href="services.html#full">The Full Stoep</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a data-shop-phone-href href="#"><span data-shop-phone></span></a></li>
+          <li><a data-shop-email-href href="#"><span data-shop-email></span></a></li>
+          <li><span data-shop-address></span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> Stoep Barbershop (Pty) Ltd. All rights reserved.</span>
+      <span><a href="terms.html">Terms &amp; Conditions</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/booking.js"></script>
+</body>
+</html>
