@@ -3,7 +3,7 @@
 window.STOEP_API = (function () {
   "use strict";
 
-  var API_BASE = "https://stoep-barbershop-api.onrender.com";
+  var API_BASE = "https://stoep-barbershop-api.onrender.com/api";
   var TOKEN_KEY = "stoep_dashboard_token";
 
   function getToken() { return localStorage.getItem(TOKEN_KEY); }
